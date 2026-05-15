@@ -309,38 +309,151 @@ Agent READY
 2026-05-15 11:23:09,325 [INFO] Agent listening at port 15034
 2026-05-15 11:23:09,325 [INFO] === Agent Started. Beginning resource cycle. ===
 ```
+---
+
+## 📊 Mission 4. Automated Monitoring Script (monitor.sh)
+
+시스템 자원과 애플리케이션 상태를 1분 단위로 기록하는 자동 관제 시스템을 구축했습니다.
 
 ---
 
-# 📂 Permission Policy Summary
+### 주요 기능
 
-| 사용자 | agent-common | agent-core | upload_files | api_keys | log directory |
-|---|---|---|---|---|---|
-| `agent-admin` | ✅ | ✅ | 접근 가능 | 접근 가능 | 접근 가능 |
-| `agent-dev` | ✅ | ✅ | 접근 가능 | 접근 가능 | 접근 가능 |
-| `agent-test` | ✅ | ❌ | 접근 가능 | 접근 불가 | 접근 불가 |
+#### ✅ Health Check
+
+- PID 기반 프로세스 상태 확인
+- LISTEN 포트 점검
+- 비정상 상태 시 로그 기록 중단 및 종료
+
+#### ✅ Resource Monitoring
+
+- CPU 사용률 수집
+- Memory 사용률 수집
+- Disk 사용률 수집
+- 임계치 초과 시 `[WARNING]` 로그 출력
+
+#### ✅ Log Rotation
+
+- 로그 파일 10MB 초과 시 자동 백업
+- 최대 10개 순환 저장
+
+#### ✅ Automation
+
+- Crontab 기반 1분 주기 자동 실행
 
 ---
 
-# 🛠️ Security Features Summary
+### Cron 등록
 
-- ✅ SSH 기본 포트 변경 (`22 → 20022`)
-- ✅ Root 원격 로그인 차단
-- ✅ UFW 기반 최소 포트 허용 정책 적용
-- ✅ 그룹 기반 접근 제어(RBAC) 구성
-- ✅ 민감 디렉토리 접근 제한 (`770`)
-- ✅ ACL 기반 권한 검증 수행
-- ✅ Root 계정이 아닌 서비스 계정으로 앱 실행
-- ✅ Python 애플리케이션 안전 배포 및 실행 환경 구성
+```cron
+* * * * * /home/agent-app/bin/monitor.sh
+```
 
 ---
 
-# 🚀 Future Improvements
+# ✅ 3. Final Verification (최종 결과)
 
-- Fail2Ban 기반 SSH 공격 탐지 및 자동 차단
-- SSH Key 기반 인증 전환
-- Systemd 서비스 등록 자동화
-- 시스템 리소스 모니터링 자동화
-- 로그 분석 및 알림 시스템 구축
-- Docker 기반 서비스 격리 환경 구성
+모든 설정 완료 후 `/var/log/agent-app/monitor.log` 파일에 자원 사용량 및 경고 로그가 정상적으로 누적되는 것을 확인했습니다.
+
+---
+
+## 실제 구동 로그 예시
+
+```plaintext
+[2026-05-15 11:48:01] PID:4812 CPU:100.0% MEM:4.6% DISK_USED:1% [WARNING] CPU > 20%
+
+[2026-05-15 13:32:50] PID:839 CPU:100.0% MEM:5.7% DISK_USED:1% [WARNING] CPU > 20%
+
+[2026-05-15 13:33:01] PID:839 CPU:1.6% MEM:4.3% DISK_USED:1%
+```
+
+---
+
+# 🛠️ 4. Troubleshooting (문제 해결 과정)
+
+프로젝트 수행 중 발생한 주요 에러와 해결 과정입니다.
+
+---
+
+## 4-1. GLIBC 버전 호환성 이슈
+
+### 문제
+
+Ubuntu 22.04 환경에서 앱 실행 시 `GLIBC_2.38 not found` 에러 발생.
+
+### 원인
+
+바이너리 빌드 환경과 운영 OS 버전 간 라이브러리 불일치.
+
+### 해결
+
+시스템 안정성을 위해 OS 환경을 Ubuntu 24.04로 마이그레이션하여 해결했습니다.
+
+---
+
+## 4-2. SSH/SFTP 통신 거부 (SCP)
+
+### 문제
+
+파일 전송 시 `subsystem request failed` 에러 발생.
+
+### 원인
+
+최신 macOS SCP의 SFTP 프로토콜과 서버 SSH 설정 간 충돌.
+
+### 해결
+
+`-O` 옵션을 사용하여 레거시 SCP 프로토콜로 강제 전송했습니다.
+
+```bash
+scp -O -P 20022 ...
+```
+
+---
+
+## 4-3. 터미널 버퍼 오버플로우 및 코드 유실
+
+### 문제
+
+긴 Shell Script를 붙여넣을 때 코드 일부가 유실되며 `syntax error` 발생.
+
+### 원인
+
+SSH 세션 내 터미널 버퍼 제한 초과.
+
+### 해결
+
+스크립트를 여러 개의 Chunk로 분할하여 `tee -a` 방식으로 순차 병합했습니다.
+
+---
+
+## 4-4. Health Check에 의한 로그 생성 중단
+
+### 문제
+
+모니터링 로그가 생성되지 않고 즉시 종료됨.
+
+### 원인
+
+`agent-app` 프로세스 종료로 인해 PID 검사 로직이 `exit 1` 수행.
+
+### 해결
+
+`pgrep`으로 프로세스 상태를 확인 후 `nohup`으로 백그라운드 재실행했습니다.
+
+---
+
+## 4-5. 권한 제어 시스템 검증
+
+### 문제
+
+일반 사용자 계정에서 로그 파일 접근 시 `Permission denied` 발생.
+
+### 원인 및 결과
+
+로그 디렉토리 권한을 `770`으로 설정하여 비그룹 사용자의 접근을 차단한 결과이며, 설계한 보안 정책이 정상 동작함을 검증했습니다.
+
+---
+
+
 
