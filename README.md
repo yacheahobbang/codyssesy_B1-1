@@ -237,9 +237,6 @@ drwxrwx--- 1 root agent-common 0 May 15 09:50 /home/agent-app/upload_files
 drwxrwx--- 1 root agent-core   0 May 15 09:50 /home/agent-app/api_keys
 drwxrwx--- 1 root agent-core   0 May 15 09:50 /var/log/agent-app
 ```
-
----
-
 # 📂 Permission Policy Summary
 
 | 사용자 | agent-common | agent-core | upload_files | api_keys | log directory |
@@ -249,3 +246,86 @@ drwxrwx--- 1 root agent-core   0 May 15 09:50 /var/log/agent-app
 | `agent-test` | ✅ | ❌ | 접근 가능 | 접근 불가 | 접근 불가 |
 
 ---
+
+## ACL 권한 확인 (getfacl)
+
+### upload_files ACL 확인
+
+```bash
+getfacl /home/agent-app/upload_files
+```
+
+#### 결과
+
+```bash
+getfacl: Removing leading '/' from absolute path names
+
+# file: home/agent-app/upload_files
+# owner: root
+# group: agent-common
+
+user::rwx
+group::rwx
+other::---
+```
+
+---
+
+### api_keys ACL 확인
+
+```bash
+getfacl /home/agent-app/api_keys
+```
+
+#### 결과
+
+```bash
+getfacl: Removing leading '/' from absolute path names
+
+# file: home/agent-app/api_keys
+# owner: root
+# group: agent-core
+
+user::rwx
+group::rwx
+other::---
+```
+
+---
+
+### log directory ACL 확인
+
+```bash
+getfacl /var/log/agent-app
+```
+
+#### 결과
+
+```bash
+getfacl: Removing leading '/' from absolute path names
+
+# file: var/log/agent-app
+# owner: root
+# group: agent-core
+
+user::rwx
+group::rwx
+other::---
+```
+
+---
+
+### ACL 검증 결과 요약
+
+| 경로 | 그룹 | 권한 |
+|---|---|---|
+| `/home/agent-app/upload_files` | `agent-common` | `rwxrwx---` |
+| `/home/agent-app/api_keys` | `agent-core` | `rwxrwx---` |
+| `/var/log/agent-app` | `agent-core` | `rwxrwx---` |
+
+- `user::rwx` → 소유자(root) 전체 권한
+- `group::rwx` → 지정 그룹 전체 권한
+- `other::---` → 그 외 사용자 접근 차단
+---
+
+
