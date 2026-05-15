@@ -43,3 +43,27 @@ PermitRootLogin no
 kangoss40272@my-server:~$ sudo ss -tulnp | grep sshd
 tcp   LISTEN 0      128                 0.0.0.0:20022      0.0.0.0:*    users:(("sshd",pid=2988,fd=3))            
 tcp   LISTEN 0      128                    [::]:20022         [::]:*    users:(("sshd",pid=2988,fd=4))
+
+# 단계 2: 방화벽(UFW) 설정 및 활성화
+기본적으로 모든 접근을 차단하고, 필수 포트인 **20022(SSH)**와 **15034(APP)**만 선별적으로 개방하였습니다.
+
+# SSH 전용 포트(20022) 허용
+sudo ufw allow 20022/tcp
+
+# APP 전용 포트(15034) 허용
+sudo ufw allow 15034/tcp
+
+# 방화벽 활성화
+sudo ufw enable
+
+# 방화벽 최종 상태 및 규칙 확인
+sudo ufw status
+
+Status: active
+
+To                         Action      From
+--                         ------      ----
+20022/tcp                  ALLOW       Anywhere                  
+15034/tcp                  ALLOW       Anywhere                  
+20022/tcp (v6)             ALLOW       Anywhere (v6)             
+15034/tcp (v6)             ALLOW       Anywhere (v6)  
