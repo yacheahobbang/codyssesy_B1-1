@@ -21,23 +21,71 @@ SSH 접속 보안, 방화벽 정책, 사용자 권한 분리, 환경 변수 설�
 
 ---
 
-# 🎯 3. 과제 목표
+## 1. 기본 보안 및 네트워크 설정
 
-이 과제의 목표는 Ubuntu 서버에서 애플리케이션을 안전하게 실행하기 위한 기본 운영 환경을 직접 구성하는 것이다.
+## 필수 패키지 설치 및 SSH/UFW 설정
 
-서버 운영에서는 프로그램이 실행되는 것만으로 충분하지 않다.  
-외부 접속을 제한하고, 필요한 포트만 열고, 사용자 권한을 분리하고, 실행 환경을 고정하고, 문제가 생겼을 때 로그로 추적할 수 있어야 한다.
+```bash
+# 필수 패키지 설치
+sudo apt update && sudo apt install openssh-server ufw -y
 
-이 과제를 마친 후 학습자는 다음 내용을 설명할 수 있어야 한다.
+# SSH 설정 변경
+sudo sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+
+# SSH 포트 변경
+echo "Port 20022" | sudo tee -a /etc/ssh/sshd_config
+
+# SSH 서비스 재시작
+sudo systemctl restart ssh
+
+#포트 리슨 상태 확인
+kangoss40272@my-new-server:/Users/kangoss40272$ sudo ss -tulnp | grep 20022
+tcp   LISTEN 0      4096               0.0.0.0:20022      0.0.0.0:*    users:(("systemd",pid=1,fd=51))          
+tcp   LISTEN 0      4096                  [::]:20022         [::]:*    users:(("systemd",pid=1,fd=56))
+
+# 방화벽 규칙 추가
+sudo ufw allow 20022/tcp
+sudo ufw allow 15034/tcp
+
+# UFW 활성화
+sudo ufw --force enable
+
+# 방화벽 설정확인
+sudo ufw status
+Status: active
+
+To                         Action      From
+--                         ------      ----
+20022/tcp                  ALLOW       Anywhere                  
+15034/tcp                  ALLOW       Anywhere                  
+20022/tcp (v6)             ALLOW       Anywhere (v6)             
+15034/tcp (v6)             ALLOW       Anywhere (v6)             
+
+
+```
 
 ---
 
-## 3-1. SSH 포트 변경과 Root 원격 접속 차단
+## 설정 설명
 
-SSH는 원격 서버에 접속하는 가장 중요한 통로다.  
+`openssh-server`는 원격 접속을 위해 필요하다.  
+`ufw`는 Ubuntu에서 방화벽을 쉽게 설정하기 위한 도구다.
+
+`PermitRootLogin no`는 Root 계정의 원격 로그인을 막는 설정이다.  
+Root 계정은 모든 권한을 가지므로 직접 원격 접속을 막는 것이 안전하다.
+
+`Port 20022`는 SSH 기본 포트를 변경하는 설정이다.  
+기본 포트인 `22`를 그대로 사용하지 않아 자동 공격 노출을 줄일 수 있다.
+
+`ufw allow 20022/tcp`는 SSH 접속을 허용하기 위한 규칙이다.  
+`ufw allow 15034/tcp`는 `agent-app` 실행 포트를 허용하기 위한 규칙이다.
+
+---
+## 1-1. SSH 포트 변경과 Root 원격 접속 차단
+SSH: 원격 컴퓨테에 안전하게 접속하기 이해 사용하는 암호화된 비밀통로 
 기본 SSH 포트인 `22번 포트`를 그대로 사용하면 자동 스캔이나 무차별 대입 공격의 대상이 되기 쉽다.
 
-그래서 본 프로젝트에서는 SSH 포트를 `20022`로 변경했다.  
+그래서 SSH 포트를 `20022`로 변경했다.  
 이는 기본 포트를 노리는 공격 시도를 줄이기 위한 기본 보안 설정이다.
 
 또한 Root 계정은 서버 전체 권한을 가진 관리자 계정이다.  
@@ -45,10 +93,8 @@ Root 계정으로 원격 접속을 허용하면 계정이 탈취되었을 때 �
 
 따라서 `PermitRootLogin no` 설정을 적용하여 Root 원격 접속을 차단했다.  
 이 설정은 관리자 권한 탈취 위험을 줄이기 위한 기본 보안 조치다.
-
 ---
-
-## 3-2. UFW 방화벽과 필요 포트만 허용하는 정책
+## 1-2. UFW 방화벽과 필요 포트만 허용하는 정책
 
 서버에서는 모든 포트를 열어두면 안 된다.  
 필요하지 않은 포트가 열려 있으면 공격자가 접근할 수 있는 경로가 늘어난다.
@@ -198,46 +244,6 @@ OrbStack 초경량 Ubuntu 이미지 환경에 필수 패키지를 설치하고 S
 
 ---
 
-## 필수 패키지 설치 및 SSH/UFW 설정
-
-```bash
-# 필수 패키지 설치
-sudo apt update && sudo apt install openssh-server ufw -y
-
-# SSH 설정 변경
-sudo sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
-
-# SSH 포트 변경
-echo "Port 20022" | sudo tee -a /etc/ssh/sshd_config
-
-# SSH 서비스 재시작
-sudo systemctl restart ssh
-
-# 방화벽 규칙 추가
-sudo ufw allow 20022/tcp
-sudo ufw allow 15034/tcp
-
-# UFW 활성화
-sudo ufw --force enable
-```
-
----
-
-## 설정 설명
-
-`openssh-server`는 원격 접속을 위해 필요하다.  
-`ufw`는 Ubuntu에서 방화벽을 쉽게 설정하기 위한 도구다.
-
-`PermitRootLogin no`는 Root 계정의 원격 로그인을 막는 설정이다.  
-Root 계정은 모든 권한을 가지므로 직접 원격 접속을 막는 것이 안전하다.
-
-`Port 20022`는 SSH 기본 포트를 변경하는 설정이다.  
-기본 포트인 `22`를 그대로 사용하지 않아 자동 공격 노출을 줄일 수 있다.
-
-`ufw allow 20022/tcp`는 SSH 접속을 허용하기 위한 규칙이다.  
-`ufw allow 15034/tcp`는 `agent-app` 실행 포트를 허용하기 위한 규칙이다.
-
----
 
 # 👥 2. User & Permission Management
 
