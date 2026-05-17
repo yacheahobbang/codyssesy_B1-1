@@ -12,8 +12,8 @@ MAX_FILES=10       # 최대 보존 로그 파일 개수
 # -------------------------------------------------------------------------
 # [기능 1] 로그 파일 용량 관리 구조 (자체 Script 내장형 Log Rotation)
 # -------------------------------------------------------------------------
-if [ -f "$LOG_FILE" ]; then
-    CURRENT_SIZE=$(stat -c%s "$LOG_FILE")
+if [ -f "$LOG_FILE" ]; then # 로그 파일이 존재하면
+    CURRENT_SIZE=$(stat -c%s "$LOG_FILE") # 현재 로그 파일 크기 바이트 단위로 측정
     if [ "$CURRENT_SIZE" -ge "$MAX_SIZE" ]; then
         # 오래된 로그 파일부터 순차적으로 밀어내기 처리 (10번 소멸, 1~9번 Shift)
         for i in $(seq $((MAX_FILES - 1)) -1 1); do
@@ -31,8 +31,8 @@ fi
 # [기능 2] Health Check 단일 검증문 (이상이 감지되면 즉시 에러코드 exit 1 선언)
 # -------------------------------------------------------------------------
 # A. 애플리케이션 바이너리 프로세스 작동 현황 추적
-PID=$(pgrep -x "agent-app")
-if [ -z "$PID" ]; then
+PID=$(pgrep -x "agent-app") # agent-app 프로세스 이름으로 PID 추출
+if [ -z "$PID" ]; then #프로세스가 죽어서 PID가 조회되지 않는다면 에러 로그를 남기고 exit 1로 스크립트를 강제 종료
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ERROR] Health Check Failed: agent-app process dead." >> "$LOG_FILE"
     exit 1
 fi
