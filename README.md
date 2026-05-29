@@ -667,6 +667,7 @@ echo "[$TIMESTAMP] PID:$PID CPU:${CPU_USAGE}% MEM:${MEM_USAGE}% DISK_USED:${DISK
 스케줄러 등록 완료 후 약 1~2분의 유예 시간을 두고 `/var/log/agent-app/monitor.log` 파일을 조회하여 가이드라인 포맷에 맞춰 데이터가 정상 적재되는 것을 확인했다.
 
 ```plaintext
+sudo tail -f /var/log/agent-app/monitor.log
 [2026-05-15 11:48:01] PID:4812 CPU:100.0% MEM:4.6% DISK_USED:1% [WARNING] CPU > 20%
 [2026-05-15 13:32:50] PID:839 CPU:100.0% MEM:5.7% DISK_USED:1% [WARNING] CPU > 20%
 [2026-05-15 13:33:01] PID:839 CPU:1.6% MEM:4.3% DISK_USED:1%
