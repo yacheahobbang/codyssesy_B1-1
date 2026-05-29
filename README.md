@@ -16,7 +16,7 @@ SSH 접속 보안, 방화벽 정책, 사용자 권한 분리, 환경 변수 설�
 | **Virtualization** | OrbStack |
 | **Guest OS** | Ubuntu 24.04 LTS (Noble Numbat) |
 | **Server Name** | `my-new-server` |
-| **Server IP** | `192.168.139.21` |
+| **Server IP** | `192.168.139.187` |
 | **Target Application** | `agent-app` (Python 3.12 Binary) |
 
 ---
