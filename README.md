@@ -336,7 +336,7 @@ other::---
 
 ```bash
 # Host(macOS) -> Guest(Ubuntu)
-scp -O -P 20022 /Users/kangoss40272/Downloads/agent-app.zip kangoss40272@192.168.139.21:~/
+scp -O -P 20022 /Users/kangoss40272/Downloads/agent-app.zip kangoss40272@192.168.139.187:~/
 ```
 
 `-P 20022`는 변경된 SSH 포트를 사용하기 위한 옵션이다.  
