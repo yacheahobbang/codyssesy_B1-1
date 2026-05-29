@@ -40,8 +40,8 @@ sudo systemctl restart ssh
 
 #포트 리슨 상태 확인
 sudo ss -tulnp | grep 20022
-tcp   LISTEN 0      4096               0.0.0.0:20022      0.0.0.0:*    users:(("systemd",pid=1,fd=51))          
-tcp   LISTEN 0      4096                  [::]:20022         [::]:*    users:(("systemd",pid=1,fd=56))
+tcp   LISTEN 0      128                 0.0.0.0:20022      0.0.0.0:*    users:(("sshd",pid=4268,fd=3))           
+tcp   LISTEN 0      128                    [::]:20022         [::]:*    users:(("sshd",pid=4268,fd=4)) 
 
 # 방화벽 규칙 추가
 #`ufw`는 Ubuntu에서 방화벽을 쉽게 설정하기 위한 도구
